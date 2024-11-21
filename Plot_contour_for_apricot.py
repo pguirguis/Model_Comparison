@@ -18,14 +18,25 @@ Un = 27.5
 Ce = 0
 He = 0
 St = 0
-Ct = Un + Ce + He + St
-Pt = 35.3
-Ft = 9.7
-Lt = 10.8
+Sa = 0
+Ps = Un + Ce + He + St
+Ct = Un + Ce + He + St + Sa
+Pe = 35.3
+AA = 0
+Pt = Pe + AA
+Lp = 9.7
+FA = 0
+Ft = Lp + FA
+Lg = 10.8
+Ph = 0
+Lt = Lg + Ph
 Ash = 0
 
+w = 10  #Loading mass 
 
-optimize_data = np.array([Un,St,Ce,Pt,He,Ft,Lt,Ash])
+
+
+optimize_data = np.array([Un,St,Ce,Pe,He,Lp,Lg,Ash,Sa,AA,FA,Ph,w])
 
 data = pd.read_excel(r'Molec.xlsx', "Fitting", engine= 'openpyxl', header= 1)
 x = np.vstack((data["Other Carbs wt%"].to_numpy(),data["Starch wt%"].to_numpy(),data["Cellulose wt%"].to_numpy(),data["Protein wt%"].to_numpy(),data["Hemicellulose wt%"].to_numpy(),data["Lipids wt%"].to_numpy(),data["Lignin wt%"].to_numpy(),data["Ash wt%"].to_numpy(),data["Sa wt%"].to_numpy(),data["AA wt%"].to_numpy(),data["FA wt%"].to_numpy(),data["Ph wt%"].to_numpy(),data["Solid content (w/w) %"].to_numpy(),data["Total time (min)"].to_numpy(),data["Temperature (C)"].to_numpy()))
@@ -55,7 +66,7 @@ y_pred_grid = np.zeros_like(time_grid)
 # Calculate lnSI and predictions for the grid
 for i in range(time_grid.shape[0]):
     for j in range(time_grid.shape[1]):
-        g = np.hstack((optimize_data,[0,0,0,0,13.45], [time_grid[i, j], temp_grid[i, j]]))
+        g = np.hstack((optimize_data, [time_grid[i, j], temp_grid[i, j]]))
         y_pred_grid[i, j] = reg.predict([g])
 
 
@@ -86,17 +97,12 @@ def f(x, L, k1, k2, x0, x1, C):
 
 def syst_9(g,x):
     
-        
-    Sa = AA = FA = Ph = 0
-    
 
-    other,starch,cell,prot,hemi, lip, lig, Ash = x/100
+    other,starch,cell,prot,hemi, lip, lig, Ash, Sa, AA, FA, Ph, solid = x/100
     
     carb = other + starch + cell
     
     lnSI = g
-    
-    solid = 18.43
     
     c = np.array([-0.564928,0.483768,2.2376,-0.082129,1.2611,0.679054,-0.103365,-1.61523,1.40838,1.91103,3.78708,6.44045,-5.08042,-24.1639,-10.9946,-0.00215947,0.738281,1.78526,0.000146593,-0.143409,3.95983,-10.8021,17.9819,-0.215694,-0.157966,0.322851,0.174539,2.62665e-05,-0.000453458,0.554452,1.73748,0.147375,-0.904569,550.624,0.94887,26.3634,78.8807,0.910595,18.3894,-0.810106,-1.97446,5.20127,67.0229,0.266541,-0.220565,-0.880906,-1.40119,0.10052,-0.796925,4.63414,0.543906,-3.9166,6.74528,-7.15621,-3.14326,0.892804,-6.51644,-5.05874,-0.377212,-9.53429,-0.00524675,-2.13967,1.35153,-1.20732,2.12951e-05,2.53847,6.42139,-0.00969975,9.5068,5.68419,2.27109,5.42597,-11.0099,0.00463512,9.24964,43.6394,11.5521,18.046,41.8618,65.8278,3.25978,-5.90463e-05,8.03129,38.3236,21.6073,-53.96,-62.6043,-0.359772,329.723,-4.36487,5.49777,2.22231,0.577807,-2.40979,0.146469,0.165292,-3.78574e-05,0.0624836,4.03881,0.874352,0.0453981,1.9135,-3.206,-0.217839,0.0420713,-0.202809,0.0921019,-0.138144,1.37912,0.191843,0.00201082,-0.0788401,-0.0064798,0.0102251,-0.000256194,14.488,-0.252748,-0.0299722,-32.0487,3.89651,-0.881552,-0.0543056,-2.53544,10.1467,-1.07744,2.59229,-1.18793,0.672652,2.49992,2.4982,1.73535,2.40841,8.44924,2.98966,5.21319,0.886304,8.90231,11.2383,-85.9187,40.5794,-10.0667,-0.297242,0.171008,0.0167001,6.42764,-17.1697,-0.000205167,-0.184531,7.77836,-0.622317])
     
@@ -218,14 +224,14 @@ def Morse2(x, b, T):
     return T * (1 - np.exp(-b * x + np.log(1 - np.sqrt(25 / T)))) ** 2 + 273
 
 # Define Sheehan2017 function
-def Sheehan2017(g,x):
+def Lunp_kinetic(g,x):
     
     A  = [-0.10662476,10.16427521,7.545085171,13.75877438,7.416747047,-2.820341747,0.369509635,1.73066761,10.14800696,14.33989239,9.178858482,-2.051355516,6.300935346,2.106228102,-2.86488537,14.25245459,35.95111365,6.315103376,16.0357234,3.269838096,0.124522155,40.7377936,10.751342,5.011572405,-0.134385736,11.37289492,14.50597886,21.12387703]
 
     Ea = [0.008600918,33.45323623,47.86596824,88.12698254,40.51769781,4.351328796,5.176955812,3.391731868,69.90082099,86.8447291,58.72222259,13.93860869,214.1736667,48.88914766,10.89103371,106.5446397,202.6120022,104.8163444,85.49384411,25.24006005,1.328515017,248.2801371,54.5086251,49.70165647,17.9440547,57.43335072,36.74063995,227.1923693]
 
     
-    other,starch,cell,Prot,hemi, Lip, Lig, Ash = x
+    other,starch,cell,Prot,hemi, Lip, Lig, Ash, Sa, AA, FA, Ph, w = x
     
     time, T = g
     
@@ -238,12 +244,12 @@ def Sheehan2017(g,x):
             teta is an array of parameters to be varied for fit"""
         
         
-        x0 = [Prot, Lip, other+cell,hemi,starch, Lig, 0, 0, 0]
+        x0 = [Prot, FA+Lip, other+cell,hemi,starch, Lig, Ph*0.4+Sa+AA*0.7, Ph*0.6+AA*0.3, 0]
         #print(sum(x0))
 
         def ode(x, t, Tempf):
 
-            Temp = Morse2(t, 1000, Tempf)
+            Temp = Morse(t, 1000, Tempf)
 
                 
 
@@ -283,21 +289,21 @@ def Sheehan2017(g,x):
             k1llg= math.exp(A[20]-(Ea[20]/(R*Temp)))
             k1clg= math.exp(A[21]-(Ea[21]/(R*Temp)))
             k2pl = math.exp(A[22]-(Ea[22]/(R*Temp)))
-            k2pc = math.exp(A[23]-(Ea[23]/(R*Temp)))
+            k2pc = math.exp(A[23]-(Ea[25]/(R*Temp)))
             k2plg= math.exp(A[24]-(Ea[24]/(R*Temp)))
             k2lc = math.exp(A[25]-(Ea[25]/(R*Temp)))
             k2llg= math.exp(A[26]-(Ea[26]/(R*Temp)))
             k2clg= math.exp(A[27]-(Ea[27]/(R*Temp)))
 
             sol = [-(k1p+k2p)*xp -k1pl*xp*xl -k2pl*xp*xl -k1pc*xp*tot_carb -k2pc*xp*tot_carb -k1plg*xp*xlg -k2plg*xp*xlg,
-                    -(k1l+k2l)*xl -k1pl*xp*xl -k2pl*xp*xl -k1lc*xl*tot_carb -k2lc*xl*tot_carb -k1llg*xl*xlg -k2llg*xl*xlg,
-                    -(k1c+k2c)*xc -(k1pc*xp*xc +k2pc*xp*xc +k1lc*xl*xc +k2lc*xl*xc +k1clg*xc*xlg +k2clg*xc*xlg),
-                    -(k1h+k2h)*xh -(k1pc*xp*xh +k2pc*xp*xh +k1lc*xl*xh +k2lc*xl*xh +k1clg*xh*xlg +k2clg*xh*xlg),
-                    -(k1s+k2s)*xs -(k1pc*xp*xs +k2pc*xp*xs +k1lc*xl*xs +k2lc*xl*xs +k1clg*xs*xlg +k2clg*xs*xlg),
-                    -(k1lg+k2lg)*xlg -k1plg*xp*xlg -k2plg*xp*xlg -k1llg*xl*xlg -k2llg*xl*xlg -k1clg*tot_carb*xlg -k2clg*tot_carb*xlg,
-                    -(k4+k5)*x2 + k1p*xp + k1l*xl +k1c*xc +k1h*xh +k1s*xs + k1lg*xlg + k3*x3 +2*k1pl*xp*xl +2*k1pc*xp*tot_carb +2*k1plg*xp*xlg +2*k1lc*xl*tot_carb +2*k1llg*xl*xlg +2*k1clg*tot_carb*xlg,
-                    -(k3+k6)*x3 + k2p*xp + k2l*xl +k2c*xc +k2h*xh +k2s*xs + k2lg*xlg + k4*x2 +2*k2pl*xp*xl +2*k2pc*xp*tot_carb +2*k2plg*xp*xlg +2*k2lc*xl*tot_carb +2*k2llg*xl*xlg +2*k2clg*tot_carb*xlg,
-                    k5*x2 + k6*x3]
+                   -(k1l+k2l)*xl -k1pl*xp*xl -k2pl*xp*xl -k1lc*xl*tot_carb -k2lc*xl*tot_carb -k1llg*xl*xlg -k2llg*xl*xlg,
+                   -(k1c+k2c)*xc -(k1pc*xp*xc +k2pc*xp*xc +k1lc*xl*xc +k2lc*xl*xc +k1clg*xc*xlg +k2clg*xc*xlg),
+                   -(k1h+k2h)*xh -(k1pc*xp*xh +k2pc*xp*xh +k1lc*xl*xh +k2lc*xl*xh +k1clg*xh*xlg +k2clg*xh*xlg),
+                   -(k1s+k2s)*xs -(k1pc*xp*xs +k2pc*xp*xs +k1lc*xl*xs +k2lc*xl*xs +k1clg*xs*xlg +k2clg*xs*xlg),
+                   -(k1lg+k2lg)*xlg -k1plg*xp*xlg -k2plg*xp*xlg -k1llg*xl*xlg -k2llg*xl*xlg -k1clg*tot_carb*xlg -k2clg*tot_carb*xlg,
+                   -(k4+k5)*x2 + k1p*xp + k1l*xl +k1c*xc +k1h*xh +k1s*xs + k1lg*xlg + k3*x3 +2*k1pl*xp*xl +2*k1pc*xp*tot_carb +2*k1plg*xp*xlg +2*k1lc*xl*tot_carb +2*k1llg*xl*xlg +2*k1clg*tot_carb*xlg,
+                   -(k3+k6)*x3 + k2p*xp + k2l*xl +k2c*xc +k2h*xh +k2s*xs + k2lg*xlg + k4*x2 +2*k2pl*xp*xl +2*k2pc*xp*tot_carb +2*k2plg*xp*xlg +2*k2lc*xl*tot_carb +2*k2llg*xl*xlg +2*k2clg*tot_carb*xlg,
+                   k5*x2 + k6*x3]
     
             #print(sol)
 
@@ -319,7 +325,7 @@ def Sheehan2017(g,x):
         
 
     if time == 0:
-        pred = [Prot, Lip, other+cell,hemi,starch, Lig, 0, 0, 0]
+        pred = [Prot, FA+Lip, other+cell,hemi,starch, Lig, Ph*0.4+Sa+AA*0.7, Ph*0.6+AA*0.3, 0]
     else:
         pred = my_ls_func(time, Temp)
 
@@ -342,7 +348,7 @@ Y_Crude_grid = np.zeros_like(time_grid)
 for i in range(time_grid.shape[0]):
     for j in range(time_grid.shape[1]):
         g = [time_grid[i, j], temp_grid[i, j]]
-        Y_Crude_grid[i, j] = Sheehan2017(g, optimize_data)
+        Y_Crude_grid[i, j] = Lunp_kinetic(g, optimize_data)
 
 # Plot the contour plot with increased font sizes
 plt.figure(figsize=(12, 8), dpi=300)
